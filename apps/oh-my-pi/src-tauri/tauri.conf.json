@@ -1,0 +1,45 @@
+{
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "oh-my-pi",
+	"version": "0.0.0",
+	"identifier": "dev.ohmypi.app",
+	"build": {
+		"beforeDevCommand": "pnpm vite dev",
+		"beforeBuildCommand": "pnpm vite build",
+		"devUrl": "http://localhost:1420",
+		"frontendDist": "../dist"
+	},
+	"app": {
+		"windows": [
+			{
+				"title": "oh-my-pi",
+				"width": 1280,
+				"height": 800,
+				"minWidth": 800,
+				"minHeight": 600,
+				"decorations": true,
+				"transparent": false
+			}
+		],
+		"security": {
+			"csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": ["app", "dmg"],
+		"externalBin": ["binaries/omp"],
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/[email protected]",
+			"icons/icon.icns"
+		],
+		"macOS": {
+			"frameworks": [],
+			"minimumSystemVersion": "12.0",
+			"exceptionDomain": "",
+			"entitlements": null
+		}
+	}
+}

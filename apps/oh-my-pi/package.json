@@ -1,0 +1,28 @@
+{
+	"name": "@pi-gui/oh-my-pi",
+	"private": true,
+	"version": "0.0.0",
+	"license": "MIT",
+	"description": "Tauri desktop shell for the oh-my-pi coding agent. Spawns the compiled `omp` binary in ACP mode and bridges it to the React renderer.",
+	"type": "module",
+	"scripts": {
+		"build:deps": "pnpm -w --filter @pi-gui/session-driver --filter @pi-gui/oh-my-pi-acp-client run build",
+		"dev": "pnpm exec tauri dev",
+		"build": "pnpm run build:deps && pnpm exec tauri build",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@pi-gui/oh-my-pi-acp-client": "workspace:*",
+		"@pi-gui/session-driver": "workspace:*",
+		"@tauri-apps/api": "^2.1.0",
+		"@tauri-apps/plugin-clipboard-manager": "^2.1.0",
+		"@tauri-apps/plugin-dialog": "^2.1.0",
+		"@tauri-apps/plugin-notification": "^2.1.0",
+		"@tauri-apps/plugin-shell": "^2.1.0",
+		"@tauri-apps/plugin-updater": "^2.1.0"
+	},
+	"devDependencies": {
+		"@tauri-apps/cli": "^2.1.0",
+		"vite": "^5.4.0"
+	}
+}

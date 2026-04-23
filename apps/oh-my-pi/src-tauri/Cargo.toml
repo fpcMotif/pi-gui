@@ -1,0 +1,58 @@
+[package]
+name = "oh-my-pi"
+version = "0.0.0"
+description = "Tauri desktop shell for the oh-my-pi coding agent."
+authors = ["pi-gui contributors"]
+license = "MIT"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri default feature set — no tray-icon (no tray UI yet) and no
+# macos-private-api (needs a signed entitlements plist and we don't ship one).
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-updater = "2"
+
+# Agent Client Protocol — first-party Rust client, used to consume the `omp`
+# sidecar's ACP output.
+agent-client-protocol = "0.20"
+
+# OAuth loopback server (obsoletes the patches/ 127.0.0.1 binding workaround).
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+
+# OS keyring for token storage (Keychain on macOS, Secret Service on Linux).
+keyring = "3"
+
+# JSON + serialization.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Logging.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
+
+[features]
+# Default features: no custom ones for now.
+default = []
+
+# IMPORTANT: this crate has not been compile-verified in the scaffold slice
+# because the dev machine lacks the Rust toolchain. The dep graph above
+# matches Tauri 2's documented template plus the ACP Rust SDK and the OAuth
+# loopback + keyring choices from the plan. Expect a first-compile fixup pass
+# (version pin adjustments, feature flag tweaks) when a machine with
+# `rustup` is first used.

@@ -1,0 +1,26 @@
+{
+  "name": "@pi-gui/oh-my-pi-acp-client",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "ACP (Agent Client Protocol) wrapper for the oh-my-pi coding agent. Spawns the compiled omp binary in --mode acp and adapts the event stream to a SessionDriver-shaped API so the existing React renderer can port surgically. Intended as a checkpoint, not long-term architecture — see the plan's 'Future migration note' for the direct-ACP-in-renderer follow-up.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "0.16.1",
+    "@pi-gui/session-driver": "workspace:*"
+  }
+}
