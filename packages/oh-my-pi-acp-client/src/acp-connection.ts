@@ -34,6 +34,11 @@ export interface AcpConnection {
 	subscribe(sessionRef: SessionRef, listener: AcpSessionEventListener): () => void;
 	startSession(workspace: WorkspaceRef, options?: CreateSessionOptions): Promise<SessionSnapshot>;
 	sendPrompt(sessionRef: SessionRef, input: SessionMessageInput): Promise<void>;
+	/**
+	 * Cancels the current run.
+	 * The in-flight `prompt` promise will resolve with StopReason::cancelled;
+	 * sendPrompt's branch emits the appropriate runCompleted/runFailed event.
+	 */
 	cancelRun(sessionRef: SessionRef): Promise<void>;
 	closeSession(sessionRef: SessionRef): Promise<void>;
 	respondToHostUiRequest(sessionRef: SessionRef, response: HostUiResponse): Promise<void>;
@@ -325,8 +330,6 @@ export function createAcpConnection(sidecar: OmpSidecarHandle, workspaceId: stri
 		async cancelRun(sessionRef) {
 			await ensureInitialized();
 			await connection.cancel({ sessionId: sessionRef.sessionId });
-			// The in-flight `prompt` promise will resolve with StopReason::cancelled;
-			// sendPrompt's branch emits the appropriate runCompleted/runFailed event.
 		},
 		async closeSession(sessionRef) {
 			const snapshot = openSessions.get(sessionRef.sessionId);
