@@ -1,11 +1,14 @@
-// Sidecar management: spawn the bundled `omp` binary in `--mode acp`,
+// Sidecar management: spawn the bundled `omp` binary in `--mode rpc`,
 // expose its stdio as async readable/writable halves suitable for feeding
-// into the ACP Rust client in `rpc.rs`.
+// into the RPC client in `rpc.rs`.
 //
-// Scaffold scope (Slice 3b): typed shell; real implementation wires
-// Tauri's `Shell` plugin to an agent-client-protocol `AsyncReadWrite`
-// stream. The NodeJS-side wrapper in packages/oh-my-pi-acp-client already
-// verified the protocol works against this same binary.
+// Scaffold scope: typed shell; real implementation wires Tauri's `Shell`
+// plugin to a line-oriented NDJSON reader over the child's stdout and a
+// JSON writer over stdin. The NodeJS-side wrapper in
+// packages/oh-my-pi-rpc-client is the reference implementation for the
+// protocol framing and id correlation; its sibling
+// packages/oh-my-pi-acp-client remains in the tree as a fallback
+// (`--mode acp`) until the RPC path proves out end-to-end.
 
 use serde::Serialize;
 use std::sync::Arc;
@@ -42,8 +45,7 @@ impl SidecarHandle {
 // Steps:
 // 1. Resolve the bundled omp binary path via Tauri's shell sidecar API
 //    (honours `bundle.externalBin` → `binaries/omp`).
-// 2. Spawn it with `--mode acp` plus `--no-session` if we manage persistence.
-// 3. Feed its stdin/stdout into agent-client-protocol's `ClientSideConnection`
-//    (see rpc.rs).
+// 2. Spawn it with `--mode rpc` plus `--no-session` if we manage persistence.
+// 3. Feed its stdin/stdout into the RPC NDJSON reader/writer (see rpc.rs).
 // 4. Emit `sidecar:status` events to the renderer.
 // 5. Respawn on crash with backoff, queue outgoing RPCs during downtime.
