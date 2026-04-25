@@ -159,6 +159,23 @@ function createWindow(): BrowserWindow {
     }
   });
 
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      void shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
+  window.webContents.on("will-navigate", (event, url) => {
+    if (isDev && url.startsWith(process.env.ELECTRON_RENDERER_URL as string)) {
+      return;
+    }
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      event.preventDefault();
+      void shell.openExternal(url);
+    }
+  });
+
   if (isDev) {
     void window.loadURL(process.env.ELECTRON_RENDERER_URL as string);
     if (process.env.PI_APP_OPEN_DEVTOOLS !== "0") {
