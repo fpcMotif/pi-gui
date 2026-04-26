@@ -1,3 +1,4 @@
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -23,7 +24,9 @@ const MARKDOWN_COMPONENTS = {
   ),
 } as const;
 
-export function MessageMarkdown({ text }: { readonly text: string }) {
+// ⚡ Bolt: Memoizing MessageMarkdown to prevent expensive re-parsing of Markdown
+// text during timeline scrolls and other parent component re-renders.
+export const MessageMarkdown = memo(function MessageMarkdown({ text }: { readonly text: string }) {
   return (
     <div className="message__content">
       <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={MARKDOWN_COMPONENTS}>
@@ -31,4 +34,4 @@ export function MessageMarkdown({ text }: { readonly text: string }) {
       </ReactMarkdown>
     </div>
   );
-}
+});
