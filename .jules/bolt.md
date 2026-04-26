@@ -1,0 +1,3 @@
+## 2024-05-19 - React.memo() on Markdown Components
+**Learning:** React components that perform heavy rendering like parsing markdown (`react-markdown`) within lists or virtualized timelines (like `MessageMarkdown` in this app) are prime candidates for `React.memo()`. Un-memoized, they re-parse the markdown string repeatedly on every parent render (e.g., when a user expands a tool call or scrolls).
+**Action:** When adding or maintaining markdown-rendering components, or any component doing heavy text processing that is rendered frequently in a list, wrap them in `React.memo()` if their props are simple primitives (like `text: string`).
