@@ -656,6 +656,22 @@ app.on("before-quit", (event) => {
     });
 });
 
+  app.on("web-contents-created", (_event, contents) => {
+    contents.on("will-navigate", (event, navigationUrl) => {
+      const parsedUrl = new URL(navigationUrl);
+      if (isDev && parsedUrl.origin === process.env.ELECTRON_RENDERER_URL) {
+        return;
+      }
+      if (!isDev && parsedUrl.protocol === "file:") {
+        return;
+      }
+      event.preventDefault();
+    });
+    contents.setWindowOpenHandler(() => {
+      return { action: "deny" };
+    });
+  });
+
 function resolveInitialWorkspacePaths(): readonly string[] {
   const raw = process.env.PI_APP_INITIAL_WORKSPACES;
   if (raw !== undefined) {
@@ -746,7 +762,15 @@ function validateComposerAttachmentPayload(attachment: ComposerAttachment): Comp
 function createRuntimeLoginCallbacks() {
   return {
     onAuth: async ({ url, instructions: _instructions }: { readonly url: string; readonly instructions?: string }) => {
-      await shell.openExternal(url);
+      try {
+        const parsedUrl = new URL(url);
+        if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+          throw new Error(`Refusing to open unsupported URL protocol: ${parsedUrl.protocol}`);
+        }
+        await shell.openExternal(url);
+      } catch (error) {
+        console.error("Failed to open login URL:", error);
+      }
     },
     onPrompt: async ({ message, placeholder }: { readonly message: string; readonly placeholder?: string }) =>
       promptForText(message, placeholder),
