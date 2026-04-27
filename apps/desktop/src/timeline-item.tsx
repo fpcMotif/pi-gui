@@ -2,9 +2,13 @@ import type { SessionTranscriptMessage } from "@pi-gui/pi-sdk-driver";
 import type { TimelineActivity, TimelineToolCall, TimelineSummary, TranscriptMessage } from "./timeline-types";
 import { MessageMarkdown } from "./message-markdown";
 import { InlineDiff, extractDiffFromOutput } from "./diff-inline";
+import { memo } from "react";
 import { ChevronRightIcon, CopyIcon, FileIcon } from "./icons";
 
-export function TimelineItem({
+// ⚡ Bolt: Wraps the timeline list item in React.memo to prevent expensive re-renders
+// Impact: Significantly reduces React render cycle time when typing in the composer or receiving stream updates,
+// as only the specifically modified items will re-render rather than the entire virtualized list.
+export const TimelineItem = memo(function TimelineItem({
   item,
   expandedToolCallIds,
   onToggleToolCall,
@@ -31,7 +35,7 @@ export function TimelineItem({
     default:
       return null;
   }
-}
+});
 
 function TimelineMessage({ item }: { readonly item: SessionTranscriptMessage }) {
   if (item.role === "user") {
