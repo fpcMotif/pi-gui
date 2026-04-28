@@ -270,12 +270,20 @@ export default function App() {
         .filter((worktree) => Boolean(worktree.linkedWorkspaceId))
         .map((worktree) => [worktree.linkedWorkspaceId as string, worktree] as const),
     );
-    const nextRootWorkspaceId = resolveRepoWorkspaceId(snapshot.workspaces, selectedWorkspace?.id);
+    // Performance optimization: avoid repeatedly rebuilding resolveRepoWorkspaceId graph state for large workspace lists.
+    const repoRootByWorkspaceId = new Map<string, string>();
+    for (const workspace of snapshot.workspaces) {
+      repoRootByWorkspaceId.set(
+        workspace.id,
+        resolveRepoWorkspaceId(snapshot.workspaces, workspace.id) ?? workspace.id,
+      );
+    }
+    const nextRootWorkspaceId = selectedWorkspace ? repoRootByWorkspaceId.get(selectedWorkspace.id) : undefined;
     const nextRootWorkspace =
-      (nextRootWorkspaceId ? snapshot.workspaces.find((workspace) => workspace.id === nextRootWorkspaceId) : undefined)
+      (nextRootWorkspaceId ? workspacesById.get(nextRootWorkspaceId) : undefined)
       ?? selectedWorkspace;
-    const nextRootWorkspaceOptions = [...new Set(snapshot.workspaces.map((workspace) => resolveRepoWorkspaceId(snapshot.workspaces, workspace.id) ?? workspace.id))]
-      .map((workspaceId) => snapshot.workspaces.find((workspace) => workspace.id === workspaceId))
+    const nextRootWorkspaceOptions = [...new Set(repoRootByWorkspaceId.values())]
+      .map((workspaceId) => workspacesById.get(workspaceId))
       .filter((workspace): workspace is WorkspaceRecord => Boolean(workspace));
 
     return {
