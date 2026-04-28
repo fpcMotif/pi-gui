@@ -125,6 +125,18 @@ function createWindow(): BrowserWindow {
       window.show();
     }
   });
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    try {
+      const parsed = new URL(url);
+      if (["http:", "https:"].includes(parsed.protocol)) {
+        void shell.openExternal(url);
+      }
+    } catch (e) {
+      console.error("Invalid URL passed to setWindowOpenHandler", e);
+    }
+    return { action: "deny" };
+  });
+
   window.webContents.on("before-input-event", (event, input) => {
     if (input.type !== "keyDown") {
       return;
