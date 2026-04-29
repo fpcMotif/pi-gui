@@ -35,6 +35,20 @@ export const TimelineItem = memo(function TimelineItem({
     default:
       return null;
   }
+}, (prevProps, nextProps) => {
+  if (prevProps.item !== nextProps.item) return false;
+  if (prevProps.onToggleToolCall !== nextProps.onToggleToolCall) return false;
+
+  // ⚡ Bolt: Only re-render tool items if their specific expanded state changed.
+  // The expandedToolCallIds Set is recreated on every toggle, so shallow prop comparison fails
+  // and causes the entire list to re-render without this custom equality check.
+  if (nextProps.item.kind === "tool") {
+    const prevExpanded = prevProps.expandedToolCallIds?.has(nextProps.item.callId) ?? false;
+    const nextExpanded = nextProps.expandedToolCallIds?.has(nextProps.item.callId) ?? false;
+    if (prevExpanded !== nextExpanded) return false;
+  }
+
+  return true;
 });
 
 function TimelineMessage({ item }: { readonly item: SessionTranscriptMessage }) {
