@@ -1,0 +1,4 @@
+## 2024-05-24 - [Title: Enhance Electron Window Navigation Security]
+**Vulnerability:** The Electron main window (`apps/desktop/electron/main.ts`) lacked explicit `setWindowOpenHandler` and `will-navigate` listeners on `window.webContents`.
+**Learning:** Without these listeners, an attacker who manages to exploit an XSS or other injection flaw could potentially trigger arbitrary external navigations or open new, uncontrolled windows (`BrowserWindow` instances) that bypass existing security constraints.
+**Prevention:** Always implement `setWindowOpenHandler` to filter `url` targets to expected protocols (like `http:` and `https:`) and force them to open in the system's default browser via `shell.openExternal`. Additionally, implement a `will-navigate` listener to explicitly deny main-window navigations unless they are to `localhost` in development or `file:` in production.
