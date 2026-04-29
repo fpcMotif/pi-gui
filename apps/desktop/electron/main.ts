@@ -159,6 +159,26 @@ function createWindow(): BrowserWindow {
     }
   });
 
+  window.webContents.setWindowOpenHandler((details) => {
+    const url = new URL(details.url);
+    if (["http:", "https:"].includes(url.protocol)) {
+      void shell.openExternal(details.url);
+    } else {
+      console.warn(`Blocked attempt to open unapproved URL: ${details.url}`);
+    }
+    return { action: "deny" };
+  });
+
+  window.webContents.on("will-navigate", (event, url) => {
+    const parsed = new URL(url);
+    // Only allow navigation to localhost during development or file:// URLs for production index.html
+    if (isDev && parsed.hostname === "localhost") return;
+    if (!isDev && parsed.protocol === "file:") return;
+
+    event.preventDefault();
+    console.warn(`Blocked attempt to navigate main window to: ${url}`);
+  });
+
   if (isDev) {
     void window.loadURL(process.env.ELECTRON_RENDERER_URL as string);
     if (process.env.PI_APP_OPEN_DEVTOOLS !== "0") {
