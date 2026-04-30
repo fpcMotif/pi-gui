@@ -125,6 +125,27 @@ function createWindow(): BrowserWindow {
       window.show();
     }
   });
+  // 🛡️ Sentinel: Prevent arbitrary external navigations in the main window
+  window.webContents.on("will-navigate", (event, url) => {
+    // Determine the base URL depending on the environment
+    const isLocalUrl = isDev
+      ? url.startsWith(process.env.ELECTRON_RENDERER_URL as string)
+      : url.startsWith(pathToFileURL(path.join(__dirname, "..", "renderer")).toString());
+
+    if (!isLocalUrl) {
+      event.preventDefault();
+      void shell.openExternal(url);
+    }
+  });
+
+  // 🛡️ Sentinel: Prevent the creation of new windows or unauthorized popups
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      void shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
   window.webContents.on("before-input-event", (event, input) => {
     if (input.type !== "keyDown") {
       return;
