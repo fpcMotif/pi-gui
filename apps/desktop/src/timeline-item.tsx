@@ -35,6 +35,21 @@ export const TimelineItem = memo(function TimelineItem({
     default:
       return null;
   }
+}, (prevProps, nextProps) => {
+  // ⚡ Bolt: Custom equality function to avoid unnecessary O(N) re-renders when expandedToolCallIds changes.
+  // Instead of a shallow comparison on the Set reference, we only check if the expanded state
+  // for this specific item has changed.
+  if (prevProps.item !== nextProps.item) return false;
+  if (prevProps.onToggleToolCall !== nextProps.onToggleToolCall) return false;
+
+  if (prevProps.item.kind === "tool") {
+    const callId = prevProps.item.callId;
+    const prevExpanded = prevProps.expandedToolCallIds?.has(callId) ?? false;
+    const nextExpanded = nextProps.expandedToolCallIds?.has(callId) ?? false;
+    if (prevExpanded !== nextExpanded) return false;
+  }
+
+  return true;
 });
 
 function TimelineMessage({ item }: { readonly item: SessionTranscriptMessage }) {
