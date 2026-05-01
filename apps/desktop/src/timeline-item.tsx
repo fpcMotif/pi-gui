@@ -8,34 +8,54 @@ import { ChevronRightIcon, CopyIcon, FileIcon } from "./icons";
 // ⚡ Bolt: Wraps the timeline list item in React.memo to prevent expensive re-renders
 // Impact: Significantly reduces React render cycle time when typing in the composer or receiving stream updates,
 // as only the specifically modified items will re-render rather than the entire virtualized list.
-export const TimelineItem = memo(function TimelineItem({
-  item,
-  expandedToolCallIds,
-  onToggleToolCall,
-}: {
-  readonly item: TranscriptMessage;
-  readonly expandedToolCallIds?: ReadonlySet<string>;
-  readonly onToggleToolCall?: (callId: string) => void;
-}) {
-  switch (item.kind) {
-    case "message":
-      return <TimelineMessage item={item} />;
-    case "activity":
-      return <TimelineActivityItem item={item} />;
-    case "tool":
-      return (
-        <TimelineToolCallItem
-          item={item}
-          expanded={expandedToolCallIds?.has(item.callId) ?? false}
-          onToggle={onToggleToolCall}
-        />
-      );
-    case "summary":
-      return <TimelineSummaryItem item={item} />;
-    default:
-      return null;
+export const TimelineItem = memo(
+  function TimelineItem({
+    item,
+    expandedToolCallIds,
+    onToggleToolCall,
+  }: {
+    readonly item: TranscriptMessage;
+    readonly expandedToolCallIds?: ReadonlySet<string>;
+    readonly onToggleToolCall?: (callId: string) => void;
+  }) {
+    switch (item.kind) {
+      case "message":
+        return <TimelineMessage item={item} />;
+      case "activity":
+        return <TimelineActivityItem item={item} />;
+      case "tool":
+        return (
+          <TimelineToolCallItem
+            item={item}
+            expanded={expandedToolCallIds?.has(item.callId) ?? false}
+            onToggle={onToggleToolCall}
+          />
+        );
+      case "summary":
+        return <TimelineSummaryItem item={item} />;
+      default:
+        return null;
+    }
+  },
+  (prevProps, nextProps) => {
+    if (prevProps.item !== nextProps.item || prevProps.onToggleToolCall !== nextProps.onToggleToolCall) {
+      return false;
+    }
+
+    // ⚡ Bolt: Custom equality function handles newly created `expandedToolCallIds` Set instances.
+    // If the item is not a tool, we don't care about the expandedToolCallIds set.
+    // If it is a tool, we only care if *this specific tool's* expanded state changed.
+    if (prevProps.item.kind === "tool") {
+      const prevExpanded = prevProps.expandedToolCallIds?.has(prevProps.item.callId) ?? false;
+      const nextExpanded = nextProps.expandedToolCallIds?.has(nextProps.item.callId) ?? false;
+      if (prevExpanded !== nextExpanded) {
+        return false;
+      }
+    }
+
+    return true;
   }
-});
+);
 
 function TimelineMessage({ item }: { readonly item: SessionTranscriptMessage }) {
   if (item.role === "user") {
