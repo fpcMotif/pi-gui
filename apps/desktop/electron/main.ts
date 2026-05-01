@@ -159,6 +159,27 @@ function createWindow(): BrowserWindow {
     }
   });
 
+  // Security: Prevent creating new windows and open URLs in the default system browser
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      void shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
+  // Security: Prevent navigation to external URLs in the app window
+  window.webContents.on("will-navigate", (event, url) => {
+    const isLocalDevUrl = isDev && url.startsWith(process.env.ELECTRON_RENDERER_URL as string);
+    const isFileProtocol = url.startsWith("file://");
+
+    if (!isLocalDevUrl && !isFileProtocol) {
+      event.preventDefault();
+      if (url.startsWith("http:") || url.startsWith("https:")) {
+        void shell.openExternal(url);
+      }
+    }
+  });
+
   if (isDev) {
     void window.loadURL(process.env.ELECTRON_RENDERER_URL as string);
     if (process.env.PI_APP_OPEN_DEVTOOLS !== "0") {

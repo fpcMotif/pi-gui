@@ -1,0 +1,4 @@
+## 2025-02-20 - Missing Electron Security Controls
+**Vulnerability:** The main Electron `BrowserWindow` was missing `setWindowOpenHandler` and `will-navigate` event listeners. This could allow malicious content loaded in the application to navigate the user away from the app or open new unauthorized windows.
+**Learning:** By default, Electron's `BrowserWindow` allows `window.open()` and standard navigations which can be a significant security risk if the application renders any external or user-generated content.
+**Prevention:** Always add `setWindowOpenHandler` and `will-navigate` listeners to `window.webContents` to restrict navigation to expected URLs and offload unexpected navigations safely to the default system browser using `shell.openExternal`. Also ensure that `shell.openExternal` is only called with safe protocols (e.g. `http:` or `https:`).
