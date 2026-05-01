@@ -358,7 +358,7 @@ const MeasuredTimelineItem = memo(
 
     // ⚡ Bolt: Custom equality function handles newly created `expandedToolCallIds` Set instances.
     // We only care about expanded tool call state changes if the item is a tool.
-    if (prevProps.item.kind === "tool") {
+    if (prevProps.item.kind === "tool" && nextProps.item.kind === "tool") {
       const prevExpanded = prevProps.expandedToolCallIds?.has(prevProps.item.callId) ?? false;
       const nextExpanded = nextProps.expandedToolCallIds?.has(nextProps.item.callId) ?? false;
       if (prevExpanded !== nextExpanded) {

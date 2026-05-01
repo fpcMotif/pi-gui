@@ -45,7 +45,7 @@ export const TimelineItem = memo(
     // ⚡ Bolt: Custom equality function handles newly created `expandedToolCallIds` Set instances.
     // If the item is not a tool, we don't care about the expandedToolCallIds set.
     // If it is a tool, we only care if *this specific tool's* expanded state changed.
-    if (prevProps.item.kind === "tool") {
+    if (prevProps.item.kind === "tool" && nextProps.item.kind === "tool") {
       const prevExpanded = prevProps.expandedToolCallIds?.has(prevProps.item.callId) ?? false;
       const nextExpanded = nextProps.expandedToolCallIds?.has(nextProps.item.callId) ?? false;
       if (prevExpanded !== nextExpanded) {
