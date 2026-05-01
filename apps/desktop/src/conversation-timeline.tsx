@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type MutableRefObject, type RefCallback, type RefObject } from "react";
+import { memo, useCallback, useLayoutEffect, useRef, useState, type MutableRefObject, type RefCallback, type RefObject } from "react";
 import type { TranscriptMessage } from "./desktop-state";
 import { ThreadSearchBar } from "./thread-search";
 import { TimelineItem } from "./timeline-item";
@@ -289,58 +289,86 @@ function VirtualizedTranscriptList({
   );
 }
 
-function MeasuredTimelineItem({
-  item,
-  className,
-  top,
-  onHeightChange,
-  expandedToolCallIds,
-  onToggleToolCall,
-}: {
-  readonly item: TranscriptMessage;
-  readonly className?: string;
-  readonly top?: number;
-  readonly onHeightChange: (id: string, height: number) => void;
-  readonly expandedToolCallIds: ReadonlySet<string>;
-  readonly onToggleToolCall: (callId: string) => void;
-}) {
-  const rowRef = useRef<HTMLDivElement | null>(null);
+// ⚡ Bolt: Wraps MeasuredTimelineItem in React.memo to prevent O(N) re-renders
+// Impact: Significantly improves performance by preventing the wrapper div from re-rendering
+// when new expandedToolCallIds sets are created during stream updates.
+const MeasuredTimelineItem = memo(
+  function MeasuredTimelineItem({
+    item,
+    className,
+    top,
+    onHeightChange,
+    expandedToolCallIds,
+    onToggleToolCall,
+  }: {
+    readonly item: TranscriptMessage;
+    readonly className?: string;
+    readonly top?: number;
+    readonly onHeightChange: (id: string, height: number) => void;
+    readonly expandedToolCallIds: ReadonlySet<string>;
+    readonly onToggleToolCall: (callId: string) => void;
+  }) {
+    const rowRef = useRef<HTMLDivElement | null>(null);
 
-  useLayoutEffect(() => {
-    const element = rowRef.current;
-    if (!element) {
-      return undefined;
+    useLayoutEffect(() => {
+      const element = rowRef.current;
+      if (!element) {
+        return undefined;
+      }
+
+      const measure = () => {
+        onHeightChange(item.id, element.getBoundingClientRect().height);
+      };
+
+      measure();
+      const resizeObserver = new ResizeObserver(() => {
+        measure();
+      });
+      resizeObserver.observe(element);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }, [item.id, onHeightChange]);
+
+    return (
+      <div
+        className={className}
+        ref={rowRef}
+        style={top == null ? undefined : { transform: `translateY(${top}px)` }}
+      >
+        <TimelineItem
+          item={item}
+          expandedToolCallIds={expandedToolCallIds}
+          onToggleToolCall={onToggleToolCall}
+        />
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    if (
+      prevProps.item !== nextProps.item ||
+      prevProps.className !== nextProps.className ||
+      prevProps.top !== nextProps.top ||
+      prevProps.onHeightChange !== nextProps.onHeightChange ||
+      prevProps.onToggleToolCall !== nextProps.onToggleToolCall
+    ) {
+      return false;
     }
 
-    const measure = () => {
-      onHeightChange(item.id, element.getBoundingClientRect().height);
-    };
+    // ⚡ Bolt: Custom equality function handles newly created `expandedToolCallIds` Set instances.
+    // We only care about expanded tool call state changes if the item is a tool.
+    if (prevProps.item.kind === "tool" && nextProps.item.kind === "tool") {
+      const prevExpanded = prevProps.expandedToolCallIds?.has(prevProps.item.callId) ?? false;
+      const nextExpanded = nextProps.expandedToolCallIds?.has(nextProps.item.callId) ?? false;
+      if (prevExpanded !== nextExpanded) {
+        return false;
+      }
+    }
 
-    measure();
-    const resizeObserver = new ResizeObserver(() => {
-      measure();
-    });
-    resizeObserver.observe(element);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [item.id, onHeightChange]);
-
-  return (
-    <div
-      className={className}
-      ref={rowRef}
-      style={top == null ? undefined : { transform: `translateY(${top}px)` }}
-    >
-      <TimelineItem
-        item={item}
-        expandedToolCallIds={expandedToolCallIds}
-        onToggleToolCall={onToggleToolCall}
-      />
-    </div>
-  );
-}
+    return true;
+  }
+);
 
 function findStartIndex(offsets: readonly number[], heights: readonly number[], targetOffset: number): number {
   let low = 0;
