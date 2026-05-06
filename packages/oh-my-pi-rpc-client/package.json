@@ -1,0 +1,25 @@
+{
+  "name": "@pi-gui/oh-my-pi-rpc-client",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "ACP-free transport for the oh-my-pi coding agent. Spawns the compiled omp binary in --mode rpc and adapts its native NDJSON JSON-RPC stream to a SessionDriver-shaped API. Sibling of @pi-gui/oh-my-pi-acp-client — mirrors its public shape so it can be swapped in without renderer changes.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@pi-gui/session-driver": "workspace:*"
+  }
+}

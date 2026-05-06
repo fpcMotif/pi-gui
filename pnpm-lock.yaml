@@ -179,6 +179,12 @@ importers:
         specifier: workspace:*
         version: link:../session-driver
 
+  packages/oh-my-pi-rpc-client:
+    dependencies:
+      '@pi-gui/session-driver':
+        specifier: workspace:*
+        version: link:../session-driver
+
   packages/pi-sdk-driver:
     dependencies:
       '@mariozechner/pi-coding-agent':
